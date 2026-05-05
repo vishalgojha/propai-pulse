@@ -1,0 +1,17 @@
+{
+  "name": "propai-sync",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "pnpm": "9.0.0",
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

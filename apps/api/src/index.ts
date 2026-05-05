@@ -1,0 +1,55 @@
+import express from 'express';
+import cors from 'cors';
+import whatsappRoutes from './routes/whatsappRoutes';
+import aiRoutes from './routes/aiRoutes';
+import agentRoutes from './routes/agentRoutes';
+import voiceRoutes from './routes/voiceRoutes';
+import authRoutes from './routes/authRoutes';
+import profileRouter from './routes/profileRouter';
+import adminRoutes from './routes/adminRoutes';
+import workspaceRoutes from './routes/workspaceRoutes';
+import intelligenceRouter from './intelligence/IntelligenceRouter';
+import fs from 'fs';
+import path from 'path';
+import { errorHandler } from './middleware/errorMiddleware';
+import { authMiddleware } from './middleware/authMiddleware';
+import { sessionManager } from './whatsapp/SessionManager';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors());
+app.use(express.json());
+
+// Use raw middleware for voice listening to handle audio buffers
+app.use('/api/voice/listen', express.raw({ type: 'audio/wav', limit: '10mb' }));
+
+// Create sessions directory if it doesn't exist
+const sessionsDir = path.join(__dirname, '../sessions');
+if (!fs.existsSync(sessionsDir)) {
+    fs.mkdirSync(sessionsDir, { recursive: true });
+}
+
+// Public routes
+app.use('/api/auth', authRoutes);
+
+// Protected routes
+app.use('/api/whatsapp', authMiddleware, whatsappRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
+app.use('/api/agent', authMiddleware, agentRoutes);
+app.use('/api/voice', authMiddleware, voiceRoutes);
+app.use('/api/profile', authMiddleware, profileRouter);
+app.use('/api/admin', authMiddleware, adminRoutes);
+app.use('/api/workspace', authMiddleware, workspaceRoutes);
+app.use('/api/intelligence', intelligenceRouter);
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+app.use(errorHandler);
+
+app.listen(PORT, async () => {
+    console.log(`Server running on port ${PORT}`);
+    await sessionManager.initSystemSession();
+});
